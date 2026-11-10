@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "_macros.html" import empty %}
+{% block title %}Collaboration Network{% endblock %}
+{% block content %}
+<div class="container page">
+  <h1 class="page-title">Collaboration network</h1>
+  <p class="muted page-lead">Each dot is a VJTI faculty member. A line joins two faculty only when they are listed as authors of the same paper.
+    Line thickness shows the number of shared papers, and larger dots have more collaborators.</p>
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="rc-card stat"><div class="stat-num">{{ stats.faculty }}</div><div class="stat-label">Faculty</div></div></div>
+    <div class="col-6 col-md-3"><div class="rc-card stat"><div class="stat-num">{{ stats.links }}</div><div class="stat-label">Verified links</div></div></div>
+    <div class="col-6 col-md-3"><div class="rc-card stat"><div class="stat-num">{{ stats.multi_author_papers }}</div><div class="stat-label">Papers with 2+ VJTI authors</div></div></div>
+    <div class="col-6 col-md-3"><div class="rc-card stat"><div class="stat-num">{{ stats.collaborating }}</div><div class="stat-label">Faculty with a link</div></div></div>
+  </div>
+
+  {% if plot.nodes %}
+    {% if stats.links == 0 %}
+    <div class="rc-note mb-4">
+      <strong>No verified collaborations yet.</strong>
+      No paper in authorship.csv lists two or more VJTI faculty authors, so the graph has no lines.
+      Lines appear automatically when such papers are added. Shared keywords never create a line.
+    </div>
+    {% endif %}
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="rc-card"><div id="network-plot" class="rc-chart" style="height: 540px"></div></div>
+      </div>
+      <div class="col-lg-4">
+        <div class="rc-card h-100" id="node-panel" aria-live="polite">
+          <h2 class="card-heading">Faculty details</h2>
+          <p class="muted mb-0">Select a dot in the graph to see that faculty member's details.</p>
+        </div>
+      </div>
+    </div>
+
+    {% if stats.top_pairs %}
+    <h2 class="card-heading mt-4">Collaborating pairs</h2>
+    <div class="rc-card table-responsive">
+      <table class="table rc-table mb-0">
+        <thead><tr><th>Faculty</th><th>Shared papers</th><th>Titles</th></tr></thead>
+        <tbody>
+          {% for pair in stats.top_pairs %}
+          <tr><td>{{ pair.a }} and {{ pair.b }}</td><td>{{ pair.shared }}</td><td>{{ pair.titles|join('; ') }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  {% else %}
+    {{ empty("No faculty to display", "faculty.csv is missing or has no rows, so there is nothing to draw.") }}
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if plot.nodes %}
+<script>window.RC_NETWORK = {{ plot|tojson }};</script>
+<script src="{{ url_for('static', filename='js/network.js') }}"></script>
+{% endif %}
+{% endblock %}

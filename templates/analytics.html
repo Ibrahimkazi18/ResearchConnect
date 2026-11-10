@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "_macros.html" import empty, chart %}
+{% block title %}Analytics{% endblock %}
+{% block content %}
+<div class="container page">
+  <h1 class="page-title">Analytics</h1>
+  <p class="muted page-lead">Counted live from {{ total_faculty }} faculty records and {{ total_papers }} papers.</p>
+
+  <div class="row g-4">
+    <div class="col-lg-6"><div class="rc-card h-100">
+      <h2 class="card-heading">Publication trend by year</h2>
+      {% if year_chart.labels %}{{ chart(year_chart, 320) }}
+      {% else %}{{ empty("No publication years yet", "No paper in papers.csv has a valid year.") }}{% endif %}
+    </div></div>
+    <div class="col-lg-6"><div class="rc-card h-100">
+      <h2 class="card-heading">Department-wise publications</h2>
+      {% if dept_chart.labels %}{{ chart(dept_chart, 320) }}
+      {% else %}{{ empty("No department data yet", "Departments are counted once faculty have a department and a linked paper.") }}{% endif %}
+    </div></div>
+    <div class="col-lg-6"><div class="rc-card h-100">
+      <h2 class="card-heading">Most common research keywords</h2>
+      {% if keyword_chart.labels %}{{ chart(keyword_chart, 380) }}
+      {% else %}{{ empty("No keywords yet", "No paper in papers.csv has keywords.") }}{% endif %}
+    </div></div>
+    <div class="col-lg-6"><div class="rc-card h-100">
+      <h2 class="card-heading">Papers per faculty member</h2>
+      {% if faculty_chart.labels %}{{ chart(faculty_chart, 380) }}
+      {% else %}{{ empty("No faculty yet", "faculty.csv has no rows.") }}{% endif %}
+    </div></div>
+  </div>
+
+  <h2 class="section-title mt-5">Collaboration statistics</h2>
+  <div class="row g-3">
+    <div class="col-6 col-md-3"><div class="rc-card stat"><div class="stat-num">{{ collab.links }}</div><div class="stat-label">Verified links</div></div></div>
+    <div class="col-6 col-md-3"><div class="rc-card stat"><div class="stat-num">{{ collab.multi_author_papers }}</div><div class="stat-label">Papers with 2+ VJTI authors</div></div></div>
+    <div class="col-6 col-md-3"><div class="rc-card stat"><div class="stat-num">{{ collab.collaborating }}</div><div class="stat-label">Faculty with a link</div></div></div>
+    <div class="col-6 col-md-3"><div class="rc-card stat"><div class="stat-num">{{ collab.density }}</div><div class="stat-label">Network density</div></div></div>
+  </div>
+  {% if collab.links == 0 %}
+  <p class="muted mt-3">No collaboration links exist yet because no paper lists two or more VJTI faculty authors.</p>
+  {% endif %}
+
+  <h2 class="section-title mt-5">Data coverage</h2>
+  <div class="rc-card table-responsive">
+    <table class="table rc-table mb-0">
+      <tbody>
+        <tr><td>Papers without a year</td><td>{{ coverage.papers_without_year }}</td></tr>
+        <tr><td>Papers without keywords</td><td>{{ coverage.papers_without_keywords }}</td></tr>
+        <tr><td>Papers without a DOI</td><td>{{ coverage.papers_without_doi }}</td></tr>
+        <tr><td>Faculty without a department</td><td>{{ coverage.faculty_without_department }}</td></tr>
+        <tr><td>Faculty without listed expertise</td><td>{{ coverage.faculty_without_expertise }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

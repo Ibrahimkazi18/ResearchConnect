@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% from "_macros.html" import empty, chart, paper_card, chips, stat_card, icon %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <h1>ResearchConnect</h1>
+      <p class="hero-tagline">Discover Expertise. Explore Publications. Connect Research.</p>
+      <p class="hero-intro">
+        VJTI faculty profiles, published papers and verified co-authorships, searchable in one place.
+      </p>
+      <div class="hero-actions">
+        <a class="btn rc-btn btn-explore" href="#research-publications" id="explore-btn">
+          <span>Explore Research</span>{{ icon('arrow-down') }}
+        </a>
+        <a class="btn rc-btn-ghost" href="{{ url_for('expertise_finder') }}">Find expertise</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <section class="stats-row" aria-label="Key figures">
+    <div class="row g-3">
+      <div class="col-6 col-lg-3">{{ stat_card(stats.faculty, "Faculty Profiles", "VJTI faculty in the directory", "graduation-cap", "violet") }}</div>
+      <div class="col-6 col-lg-3">{{ stat_card(stats.papers, "Research Papers", "Selected publications on record", "book-open", "blue") }}</div>
+      <div class="col-6 col-lg-3">{{ stat_card(stats.links, "Collaboration Links", "Verified faculty co-authorships", "share-2", "purple") }}</div>
+      <div class="col-6 col-lg-3">{{ stat_card(stats.keywords, "Research Keywords", "Distinct keywords in the data", "lightbulb", "indigo") }}</div>
+    </div>
+  </section>
+
+  {% if warnings %}
+  <div class="rc-note mt-4">
+    <strong>Data notes</strong>
+    <ul class="mb-0">{% for w in warnings %}<li>{{ w }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  <section class="rc-section">
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="rc-card h-100">
+          <h2 class="card-heading">Publications by year</h2>
+          <p class="card-sub">Number of papers published each year, counted from papers.csv.</p>
+          {% if year_chart.labels %}{{ chart(year_chart, 320) }}
+            {% if year_missing %}<p class="muted small mt-2 mb-0">{{ year_missing }} {{ 'paper has' if year_missing == 1 else 'papers have' }} no year listed and {{ 'is' if year_missing == 1 else 'are' }} not shown.</p>{% endif %}
+          {% else %}{{ empty("No publication years yet", "Add a year to papers.csv and this chart fills in automatically.") }}{% endif %}
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="rc-card h-100">
+          <h2 class="card-heading">Department-wise publications</h2>
+          <p class="card-sub">Papers with at least one linked author in each department.</p>
+          {% if dept_chart.labels %}{{ chart(dept_chart, 320) }}
+          {% else %}{{ empty("No department data yet", "Departments appear once faculty.csv lists a department for faculty who have linked papers.") }}{% endif %}
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="rc-card h-100">
+          <h2 class="card-heading">Top research keywords</h2>
+          <p class="card-sub">The 10 keywords used by the most papers.</p>
+          {% if keyword_chart.labels %}{{ chart(keyword_chart, 380) }}
+          {% else %}{{ empty("No keywords yet", "Add keywords to papers.csv (separated by semicolons) to see them here.") }}{% endif %}
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="rc-card h-100">
+          <h2 class="card-heading">Recent publications</h2>
+          {% if recent %}
+          <ul class="recent-list">
+            {% for p in recent %}
+            <li>
+              <span class="recent-year">{{ p.year_num if p.year_num else 'n/a' }}</span>
+              <span>
+                {% if p.link %}<a href="{{ p.link }}" target="_blank" rel="noopener">{{ p.title }}</a>{% else %}{{ p.title }}{% endif %}
+                <span class="muted d-block small">{{ p.venue if p.venue else 'Venue not listed' }}</span>
+              </span>
+            </li>
+            {% endfor %}
+          </ul>
+          <a href="{{ url_for('publications') }}">See all publications</a>
+          {% else %}{{ empty("No publications yet", "Papers listed in papers.csv will appear here.") }}{% endif %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rc-section" id="research-publications" tabindex="-1">
+    <h2 class="section-title">Research Publications</h2>
+    <p class="muted page-lead mb-3">Search by title, keyword, venue or faculty author, then narrow by year or department.</p>
+    {% set compact = true %}
+    {% include "_publications_table.html" %}
+  </section>
+
+  <section class="rc-section">
+    <h2 class="section-title">Explore</h2>
+    <div class="row g-3">
+      {% set tiles = [
+        ('faculty_list', 'Faculty', 'Search VJTI faculty and see their papers.'),
+        ('publications', 'Publications', 'Filter papers by title, year or keyword.'),
+        ('expertise_finder', 'Expertise Finder', 'Match research keywords to faculty.'),
+        ('network', 'Collaboration Network', 'See who has co-authored papers.'),
+        ('analytics_page', 'Analytics', 'Charts for years, departments and keywords.')] %}
+      {% for endpoint, title, text in tiles %}
+      <div class="col-6 col-lg">
+        <a class="rc-card rc-card-link tile" href="{{ url_for(endpoint) }}">
+          <span class="tile-title">{{ title }}</span>
+          <span class="muted small">{{ text }}</span>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/publications.js') }}"></script>
+<script>
+  // Hero button: smooth-scroll to the publications section (instant if the visitor prefers reduced motion)
+  (function () {
+    var button = document.getElementById("explore-btn"), target = document.getElementById("research-publications");
+    if (!button || !target) return;
+    button.addEventListener("click", function (event) {
+      event.preventDefault();
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      target.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+      target.focus({ preventScroll: true });
+      if (history.replaceState) history.replaceState(null, "", "#research-publications");
+    });
+  })();
+</script>
+{% endblock %}

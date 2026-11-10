@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="hero">
+    <p class="eyebrow">VEERMATA JIJABAI TECHNOLOGICAL INSTITUTE</p>
+    <h1>ResearchConnect</h1>
+    <p>Connecting Research. Discovering Expertise. Building Collaborations.</p>
+</section>
+
+<h4 class="section-title">Research Overview</h4>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat">
+            <p>Faculty Profiles</p>
+            <h2>{{ faculty_count }}</h2>
+            <small>Faculty in dataset</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat">
+            <p>Research Papers</p>
+            <h2>{{ paper_count }}</h2>
+            <small>Recorded publications</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat">
+            <p>Collaboration Links</p>
+            <h2>{{ collaboration_count }}</h2>
+            <small>Verified co-authorship links</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat">
+            <p>Research Keywords</p>
+            <h2>{{ topic_count }}</h2>
+            <small>Unique research keywords</small>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="panel">
+            <h5>Publications by Year</h5>
+            {% for year, count in years.items() %}
+            <div class="year-row">
+                <span>{{ year }}</span>
+                <strong>{{ count }} papers</strong>
+            </div>
+            {% else %}
+            <p>No publication year data available.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="panel">
+            <h5>About ResearchConnect</h5>
+            <p>Explore faculty research publications, discover areas of expertise,
+               and understand academic collaboration across VJTI.</p>
+            <p class="muted">Built with Python, Flask, Pandas and NetworkX.</p>
+        </div>
+    </div>
+</div>
+
+<div class="panel mt-3">
+    <h5>Research Publications</h5>
+    <div class="table-responsive">
+        <table class="table table-dark table-hover">
+            <thead>
+                <tr>
+                    <th>Paper Title</th>
+                    <th>Year</th>
+                    <th>Venue</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for paper in papers %}
+                <tr>
+                    <td>{{ paper.get('title', '-') }}</td>
+                    <td>{{ paper.get('year', '-') }}</td>
+                    <td>{{ paper.get('venue', '-') }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3">No papers found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% from "_macros.html" import empty, chips %}
+{% block title %}Expertise Finder{% endblock %}
+{% block content %}
+<div class="container page">
+  <h1 class="page-title">Expertise Finder</h1>
+  <p class="muted page-lead">Type one or more research keywords, separated by commas, to find faculty with matching keywords.</p>
+
+  <div class="rc-note mb-4">
+    <strong>How the score works.</strong>
+    Jaccard similarity compares two keyword sets: shared keywords divided by all distinct keywords in both sets,
+    times 100. A faculty member's set combines their listed expertise with the keywords of their own papers.
+    <strong>A high score shows overlapping topics only. It does not prove that anyone has collaborated.</strong>
+    Verified collaboration is on the Collaboration Network page.
+  </div>
+
+  <form class="row g-2 filter-bar" method="get" action="{{ url_for('expertise_finder') }}">
+    <div class="col-md-10">
+      <input class="form-control" type="search" name="q" value="{{ q }}" placeholder="For example: machine learning, iot" aria-label="Research keywords">
+    </div>
+    <div class="col-md-2"><button class="btn rc-btn w-100" type="submit">Find faculty</button></div>
+  </form>
+
+  {% if not keywords %}
+    {{ empty("No keywords to search", "No research keywords are recorded yet. Add keywords to papers.csv or expertise to faculty.csv.") }}
+  {% else %}
+    {% if searched %}
+      {% if unknown %}
+      <p class="muted">Not found in the data: {{ unknown|join(', ') }}.</p>
+      {% endif %}
+      {% if results %}
+      <div class="d-grid gap-3 mb-4">
+        {% for r in results %}
+        <article class="rc-card result-card">
+          <div class="result-score">
+            <span class="score-num">{{ r.score }}%</span>
+            <span class="muted small">similarity</span>
+          </div>
+          <div class="result-body">
+            <h2 class="faculty-name"><a href="{{ url_for('faculty_detail', faculty_id=r.faculty.faculty_id) }}">{{ r.faculty.name }}</a></h2>
+            <p class="muted mb-2">{{ r.faculty.department if r.faculty.department else 'Department not listed' }}</p>
+            <div class="mb-2">{{ chips(r.matching) }}</div>
+            <p class="muted small mb-0">{{ r.shared }} shared / {{ r.union }} distinct keywords in total</p>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+        {{ empty("No faculty match", "No faculty keyword set contains those terms. Try a keyword from the list below.") }}
+      {% endif %}
+    {% endif %}
+
+    <h2 class="card-heading mt-4">Keywords in the data</h2>
+    <p class="muted small">Select one to search for it.</p>
+    <div>
+      {% for key, label in keywords %}
+      <a class="chip chip-link" href="{{ url_for('expertise_finder', q=label) }}">{{ label }}</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

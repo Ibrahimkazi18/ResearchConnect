@@ -1,0 +1,80 @@
+{# Shared interactive publications table. Used on the dashboard and on /publications.
+   Needs: pub_rows, pub_years, pub_departments, init_q, init_year, init_dept. Optional: compact #}
+{% from "_macros.html" import empty, icon %}
+{% if not pub_rows %}
+  {{ empty("No publication data", "papers.csv is missing or has no rows. Add papers and refresh this page.") }}
+{% else %}
+<div class="pub-widget" data-pub-table>
+  <div class="pub-toolbar">
+    <div class="pub-search">
+      <span class="pub-search-icon">{{ icon('search') }}</span>
+      <input id="pub-search" class="form-control" type="search" value="{{ init_q }}" autocomplete="off"
+             placeholder="Search title, keywords, venue or faculty author" aria-label="Search publications">
+      <button type="button" class="pub-clear" id="pub-clear" aria-label="Clear search" hidden>{{ icon('x') }}</button>
+    </div>
+    <select id="pub-year" class="form-select" aria-label="Filter by year">
+      <option value="">All Years</option>
+      {% for y in pub_years %}<option value="{{ y }}" {% if y|string == init_year %}selected{% endif %}>{{ y }}</option>{% endfor %}
+    </select>
+    <select id="pub-dept" class="form-select" aria-label="Filter by department" {% if not pub_departments %}disabled title="No department information is available for these papers"{% endif %}>
+      <option value="">All Departments</option>
+      {% for d in pub_departments %}<option value="{{ d }}" {% if d == init_dept %}selected{% endif %}>{{ d }}</option>{% endfor %}
+    </select>
+    <button type="button" class="btn rc-btn-ghost" id="pub-reset">Reset filters</button>
+  </div>
+
+  <p class="pub-count" id="pub-count" aria-live="polite">Showing {{ pub_rows|length }} of {{ pub_rows|length }} publications</p>
+
+  <div class="pub-table-wrap {% if compact %}pub-compact{% endif %}" id="pub-table-wrap">
+    <table class="pub-table">
+      <thead>
+        <tr>
+          <th scope="col" class="col-title">Paper Title</th>
+          <th scope="col" class="col-year">Year</th>
+          <th scope="col">Venue</th>
+          <th scope="col">Faculty Author</th>
+          <th scope="col">Department</th>
+          <th scope="col" class="col-link">DOI / Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in pub_rows %}{% set p = r.paper %}
+        <tr data-search="{{ r.search_text }}" data-year="{{ p.year_num if p.year_num else '' }}" data-depts='{{ r.departments|tojson }}'>
+          <td data-label="Paper Title" class="col-title">
+            <span class="pub-title">{{ p.title }}</span>
+            {% if p.keyword_list %}<span class="pub-kw">{{ p.keyword_list|join('; ') }}</span>{% endif %}
+          </td>
+          <td data-label="Year" class="col-year">{% if p.year_num %}{{ p.year_num }}{% else %}<span class="muted">Not listed</span>{% endif %}</td>
+          <td data-label="Venue">{% if p.venue %}{{ p.venue }}{% else %}<span class="muted">Not listed</span>{% endif %}</td>
+          <td data-label="Faculty Author">
+            {% if r.authors %}{% for a in r.authors %}<a href="{{ url_for('faculty_detail', faculty_id=a.faculty_id) }}">{{ a.name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+            {% else %}<span class="muted">Not listed</span>{% endif %}
+          </td>
+          <td data-label="Department">
+            {% if r.departments %}{% for d in r.departments %}<span class="pub-dept">{{ d }}</span>{% endfor %}
+            {% else %}<span class="muted">Not listed</span>{% endif %}
+          </td>
+          <td data-label="DOI / Source" class="col-link">
+            {% if p.doi_link %}
+              <a class="ext-link" href="{{ p.doi_link }}" target="_blank" rel="noopener noreferrer" title="Open DOI in a new tab">
+                <span class="ext-text">DOI: {{ p.doi }}</span>{{ icon('external-link') }}<span class="visually-hidden">(opens in a new tab)</span>
+              </a>
+            {% elif p.source_url %}
+              <a class="ext-link" href="{{ p.source_url }}" target="_blank" rel="noopener noreferrer" title="Open source in a new tab">
+                <span class="ext-text">Source link</span>{{ icon('external-link') }}<span class="visually-hidden">(opens in a new tab)</span>
+              </a>
+            {% else %}<span class="muted">Not available</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="rc-empty mt-3" id="pub-empty" hidden>
+    <h3>No publications match these filters</h3>
+    <p>Try fewer words, another year or department, or reset the filters to see every publication.</p>
+    <button type="button" class="btn rc-btn mt-3" id="pub-empty-reset">Reset filters</button>
+  </div>
+</div>
+{% endif %}

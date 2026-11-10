@@ -1,0 +1,73 @@
+{# Small reusable pieces of HTML (Jinja macros) #}
+
+{% macro empty(title, text) %}
+<div class="rc-empty">
+  <h3>{{ title }}</h3>
+  <p>{{ text }}</p>
+</div>
+{% endmacro %}
+
+{% macro chips(items) %}
+{% for item in items %}<span class="chip">{{ item }}</span>{% endfor %}
+{% endmacro %}
+
+{% macro chart(data, height=320) %}
+<div class="rc-chart" style="height: {{ height }}px" data-chart='{{ data|tojson }}'></div>
+{% endmacro %}
+
+{% macro paper_card(p) %}
+<article class="rc-card paper-card">
+  <div class="paper-year">{{ p.year_num if p.year_num else 'Year not listed' }}</div>
+  <h3 class="paper-title">
+    {% if p.link %}<a href="{{ p.link }}" target="_blank" rel="noopener">{{ p.title }}</a>{% else %}{{ p.title }}{% endif %}
+  </h3>
+  <p class="paper-meta">{{ p.venue if p.venue else 'Venue not listed' }}</p>
+  <p class="paper-meta">
+    DOI:
+    {% if p.doi_link %}<a href="{{ p.doi_link }}" target="_blank" rel="noopener">{{ p.doi }}</a>
+    {% else %}not listed{% endif %}
+    {% if not p.doi_link and p.source_url %}<a class="ms-2" href="{{ p.source_url }}" target="_blank" rel="noopener">View source</a>{% endif %}
+  </p>
+  {% if p.authors %}
+  <p class="paper-meta">VJTI faculty:
+    {% for a in p.authors %}<a href="{{ url_for('faculty_detail', faculty_id=a.faculty_id) }}">{{ a.name }}</a>{% if not loop.last %}, {% endif %}{% endfor %}
+  </p>
+  {% endif %}
+  <div class="mt-2">
+    {% if p.keyword_list %}{{ chips(p.keyword_list) }}{% else %}<span class="muted small">No keywords listed</span>{% endif %}
+  </div>
+</article>
+{% endmacro %}
+
+{# Icons: small inline SVGs (Lucide style), so no icon library has to be downloaded #}
+{% macro icon(name) %}
+<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  {% if name == 'graduation-cap' %}
+  <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>
+  {% elif name == 'book-open' %}
+  <path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>
+  {% elif name == 'share-2' %}
+  <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
+  {% elif name == 'search' %}
+  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+  {% elif name == 'x' %}
+  <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+  {% elif name == 'external-link' %}
+  <path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+  {% elif name == 'arrow-down' %}
+  <path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>
+  {% elif name == 'lightbulb' %}
+  <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>
+  {% endif %}
+</svg>
+{% endmacro %}
+
+{# One statistic card. tone = violet | blue | purple | indigo (picks the accent colour) #}
+{% macro stat_card(value, label, note, icon_name, tone) %}
+<div class="rc-card stat-card tone-{{ tone }}">
+  <span class="stat-icon">{{ icon(icon_name) }}</span>
+  <div class="stat-num">{{ value }}</div>
+  <div class="stat-label">{{ label }}</div>
+  <div class="stat-note">{{ note }}</div>
+</div>
+{% endmacro %}

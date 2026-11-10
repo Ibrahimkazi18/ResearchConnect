@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% from "_macros.html" import empty, chips, paper_card %}
+{% block title %}{{ person.name }}{% endblock %}
+{% block content %}
+<div class="container page">
+  <a class="back-link" href="{{ url_for('faculty_list') }}">Back to faculty</a>
+  <div class="rc-card profile-head">
+    <h1 class="page-title mb-1">{{ person.name }}</h1>
+    <p class="muted mb-3">{{ person.department if person.department else 'Department not listed' }}</p>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <span class="chip chip-strong">{{ person.paper_count }} {{ 'paper' if person.paper_count == 1 else 'papers' }}</span>
+      {% if person.profile_url %}<a class="btn rc-btn-ghost btn-sm" href="{{ person.profile_url }}" target="_blank" rel="noopener">Official profile</a>{% endif %}
+      {% if person.data_status %}<span class="muted small">Data status: {{ person.data_status }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="row g-4 mt-1">
+    <div class="col-lg-4">
+      <div class="rc-card h-100">
+        <h2 class="card-heading">Expertise</h2>
+        {% if person.expertise_list %}{{ chips(person.expertise_list) }}
+        {% else %}<p class="muted mb-0">Expertise has not been listed for this faculty member yet.</p>{% endif %}
+
+        <h2 class="card-heading mt-4">Keywords from their papers</h2>
+        {% if person.paper_keywords %}{{ chips(person.paper_keywords) }}
+        {% else %}<p class="muted mb-0">The linked papers have no keywords listed.</p>{% endif %}
+
+        <h2 class="card-heading mt-4">Verified collaborators</h2>
+        {% if collaborators %}
+        <ul class="mini-list">
+          {% for other, shared in collaborators %}
+          <li><a href="{{ url_for('faculty_detail', faculty_id=other.faculty_id) }}">{{ other.name }}</a> ({{ shared }} shared {{ 'paper' if shared == 1 else 'papers' }})</li>
+          {% endfor %}
+        </ul>
+        {% else %}<p class="muted mb-0">No VJTI co-authors are recorded on any linked paper.</p>{% endif %}
+      </div>
+    </div>
+    <div class="col-lg-8">
+      <h2 class="card-heading">Publications</h2>
+      {% if person.papers %}
+      <div class="d-grid gap-3">{% for p in person.papers %}{{ paper_card(p) }}{% endfor %}</div>
+      {% else %}{{ empty("No papers linked", "No rows in authorship.csv connect this faculty member to a paper yet.") }}{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

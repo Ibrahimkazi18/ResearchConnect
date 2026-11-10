@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% from "_macros.html" import empty %}
+{% block title %}Page not found{% endblock %}
+{% block content %}
+<div class="container page">
+  {{ empty("Page not found", "That page or faculty profile does not exist. Use the menu above to continue.") }}
+</div>
+{% endblock %}

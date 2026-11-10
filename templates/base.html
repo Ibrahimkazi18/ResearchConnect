@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="ResearchConnect: Connecting Research. Discovering Expertise. Building Collaborations. VJTI Mumbai faculty research portal.">
+  <title>{% block title %}ResearchConnect{% endblock %} | VJTI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Newsreader:opsz,wght@6..72,500;6..72,600;6..72,700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body>
+{% set nav_items = [
+  ('dashboard', 'Dashboard'),
+  ('faculty_list', 'Faculty'),
+  ('publications', 'Publications'),
+  ('expertise_finder', 'Expertise Finder'),
+  ('network', 'Collaboration Network'),
+  ('analytics_page', 'Analytics')] %}
+
+<nav class="navbar navbar-expand-lg rc-nav sticky-top">
+  <div class="container">
+    <a class="navbar-brand rc-brand" href="{{ url_for('dashboard') }}">
+      <img src="{{ url_for('static', filename='images/logo.png') }}" alt="VJTI logo" height="42"
+           onerror="this.style.display='none'">
+      <span>
+        <span class="rc-brand-name">ResearchConnect</span>
+        <span class="rc-brand-sub">VJTI Mumbai</span>
+      </span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+            aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="mainNav">
+      <ul class="navbar-nav ms-auto">
+        {% for endpoint, label in nav_items %}
+        <li class="nav-item">
+          <a class="nav-link {% if request.endpoint == endpoint or (endpoint == 'faculty_list' and request.endpoint == 'faculty_detail') %}active{% endif %}"
+             href="{{ url_for(endpoint) }}">{{ label }}</a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main>{% block content %}{% endblock %}</main>
+
+<footer class="rc-footer">
+  <div class="container">
+    ResearchConnect is a VJTI college mini-project. Data comes from faculty.csv, papers.csv and authorship.csv.
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

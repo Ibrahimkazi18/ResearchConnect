@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "_macros.html" import empty, chips %}
+{% block title %}Faculty{% endblock %}
+{% block content %}
+<div class="container page">
+  <h1 class="page-title">Faculty directory</h1>
+  <p class="muted page-lead">Showing {{ people|length }} of {{ total }} faculty profiles.</p>
+
+  <form class="row g-2 filter-bar" method="get" action="{{ url_for('faculty_list') }}">
+    <div class="col-md-6">
+      <input class="form-control" type="search" name="q" value="{{ q }}" placeholder="Search by faculty name" aria-label="Search by faculty name">
+    </div>
+    <div class="col-md-4">
+      <select class="form-select" name="department" aria-label="Filter by department">
+        <option value="">All departments</option>
+        {% for d in departments %}<option value="{{ d }}" {% if d == dept %}selected{% endif %}>{{ d }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2 d-flex gap-2">
+      <button class="btn rc-btn flex-fill" type="submit">Search</button>
+      <a class="btn rc-btn-ghost" href="{{ url_for('faculty_list') }}">Reset</a>
+    </div>
+  </form>
+
+  {% if people %}
+  <div class="row g-4">
+    {% for f in people %}
+    <div class="col-md-6 col-xl-4">
+      <article class="rc-card h-100 faculty-card">
+        <h2 class="faculty-name"><a href="{{ url_for('faculty_detail', faculty_id=f.faculty_id) }}">{{ f.name }}</a></h2>
+        <p class="muted mb-2">{{ f.department if f.department else 'Department not listed' }}</p>
+        <div class="mb-3">
+          {% if f.expertise_list %}{{ chips(f.expertise_list) }}{% else %}<span class="muted small">Expertise not listed yet</span>{% endif %}
+        </div>
+        <p class="count-line"><strong>{{ f.paper_count }}</strong> {{ 'paper' if f.paper_count == 1 else 'papers' }}</p>
+        {% if f.papers %}
+        <ul class="mini-list">
+          {% for p in f.papers[:3] %}<li>{{ p.title }}{% if p.year_num %} ({{ p.year_num }}){% endif %}</li>{% endfor %}
+        </ul>
+        {% if f.papers|length > 3 %}<p class="muted small mb-0">and {{ f.papers|length - 3 }} more on the profile page.</p>{% endif %}
+        {% else %}
+        <p class="muted small mb-0">No papers linked to this profile yet.</p>
+        {% endif %}
+      </article>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+    {% if total == 0 %}
+      {{ empty("No faculty data", "faculty.csv is missing or has no rows. Add faculty records and refresh this page.") }}
+    {% else %}
+      {{ empty("No faculty match", "Try a different name or choose All departments.") }}
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}
