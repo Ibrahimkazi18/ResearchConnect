@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "_macros.html" import empty, chips %}
+{% block title %}Faculty Compare{% endblock %}
+{% block content %}
+<div class="container page">
+  <a class="back-link" href="{{ url_for('faculty_list') }}">Back to faculty</a>
+  <h1 class="page-title">Faculty Compare</h1>
+  <p class="muted page-lead">Compare listed expertise and keywords from linked papers. Similarity does not prove collaboration.</p>
+  <form class="row g-2 filter-bar" method="get" action="{{ url_for('faculty_compare') }}">
+    {% for key, selected, label in [('a', a, 'Faculty A'), ('b', b, 'Faculty B')] %}
+    <div class="col-md-5">
+      <label class="form-label" for="faculty-{{ key }}">{{ label }}</label>
+      <select class="form-select" id="faculty-{{ key }}" name="{{ key }}">
+        <option value="">Select a faculty member</option>
+        {% for f in people %}
+        <option value="{{ f.faculty_id }}" {% if f.faculty_id == selected %}selected{% endif %}>{{ f.name if f.name and f.name != 'Name not listed' else 'Not listed' }} ({{ f.department or 'Not listed' }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endfor %}
+    <div class="col-md-2 d-flex align-items-end"><button class="btn rc-btn w-100" type="submit">Compare</button></div>
+  </form>
+  {% if error %}<p class="rc-note" role="alert">{{ error }}</p>{% endif %}
+  {% if not people %}{{ empty('No faculty data', 'No faculty members are available to compare.') }}{% endif %}
+  {% if result %}
+  <section aria-label="Comparison result">
+    <h2 class="card-heading">Jaccard similarity: {{ result.score|round(1) }}%</h2>
+    {% if result.self_comparison %}<p class="rc-note">You selected the same faculty member twice. All listed keywords are shared; an empty profile scores 0%.</p>{% endif %}
+    {% if not result.keywords_a and not result.keywords_b %}<p class="rc-note">Neither profile has keywords. Two empty keyword sets score 0%.</p>{% endif %}
+    <div class="row g-4">
+      {% for label, person, keywords, unique in [('Faculty A', result.faculty_a, result.keywords_a, result.unique_a), ('Faculty B', result.faculty_b, result.keywords_b, result.unique_b)] %}
+      <div class="col-md-6"><article class="rc-card h-100">
+        <h3 class="card-heading">{{ label }}: <a href="{{ url_for('faculty_detail', faculty_id=person.faculty_id) }}">{{ person.name }}</a></h3>
+        <p class="muted">{{ person.department }}</p>
+        <h4 class="card-heading">All keywords</h4>
+        {% if keywords %}{{ chips(keywords) }}{% else %}{{ empty('No keywords listed', 'This profile has no listed expertise or linked-paper keywords.') }}{% endif %}
+        <h4 class="card-heading mt-4">Unique keywords</h4>
+        {% if unique %}{{ chips(unique) }}{% else %}{{ empty('No unique keywords', 'This profile has no keywords unique to this comparison.') }}{% endif %}
+      </article></div>
+      {% endfor %}
+    </div>
+    <div class="rc-card mt-4">
+      <h3 class="card-heading">Shared keywords</h3>
+      {% if result.shared %}{{ chips(result.shared) }}{% else %}{{ empty('No shared keywords', 'These profiles have no keywords in common.') }}{% endif %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

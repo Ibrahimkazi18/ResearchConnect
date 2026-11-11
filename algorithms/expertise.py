@@ -40,6 +40,33 @@ def parse_query(text):
     return {k.lower() for k in split_keywords(text, semicolon_first=False)}
 
 
+def compare_faculty(ds, id_a, id_b):
+    """Compare normalized profiles; raise ValueError for unknown faculty IDs.
+
+    Display labels follow normalized keyword order. Self-comparison is allowed;
+    the existing Jaccard helper defines two empty profiles as 0%.
+    """
+    if id_a not in ds.faculty_by_id or id_b not in ds.faculty_by_id:
+        raise ValueError("Select two known faculty members.")
+    profiles = {p["faculty"]["faculty_id"]: p["keywords"] for p in build_profiles(ds)}
+    a, b = profiles[id_a], profiles[id_b]
+
+    def labels(keywords):
+        return [ds.keyword_labels.get(k, k) for k in sorted(keywords)]
+
+    def person(fid):
+        faculty = ds.faculty_by_id[fid]
+        return {"faculty_id": fid,
+                "name": "Not listed" if faculty["name"] == "Name not listed" else faculty["name"] or "Not listed",
+                "department": faculty["department"] or "Not listed"}
+
+    return {"faculty_a": person(id_a), "faculty_b": person(id_b),
+            "keywords_a": labels(a), "keywords_b": labels(b),
+            "shared": labels(a & b), "unique_a": labels(a - b),
+            "unique_b": labels(b - a), "score": jaccard_percent(a, b),
+            "self_comparison": id_a == id_b}
+
+
 def find_matches(query_set, profiles, labels):
     """Return faculty sharing at least one keyword, best match first.
     `labels` maps a lowercase keyword to its nicely written form."""

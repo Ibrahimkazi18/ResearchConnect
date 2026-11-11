@@ -78,6 +78,23 @@ def faculty_detail(faculty_id):
                            collaborators=collaboration.collaborators_of(graph, ds, faculty_id))
 
 
+@app.get("/compare")
+def faculty_compare():
+    ds = Dataset()
+    a = request.args.get("a", "").strip()
+    b = request.args.get("b", "").strip()
+    result, error = None, ""
+    if "a" in request.args or "b" in request.args:
+        if not a or not b:
+            error = "Select both faculty members to compare."
+        elif a not in ds.faculty_by_id or b not in ds.faculty_by_id:
+            error = "Unknown faculty selection. Select two known faculty members."
+        else:
+            result = expertise.compare_faculty(ds, a, b)
+    return render_template("compare.html", people=ds.faculty, a=a, b=b,
+                           result=result, error=error)
+
+
 # ---------- Publications ----------
 @app.route("/publications")
 def publications():
