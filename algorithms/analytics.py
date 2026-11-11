@@ -56,6 +56,46 @@ def faculty_paper_counts(ds):
                          name_label="Faculty", value_label="Papers") if counter else _chart([], [])
 
 
+def department_summary(ds, dept):
+    """Display data for an exact department name, or None if it is unknown.
+
+    Each linked paper counts once here, including papers shared with another
+    department. Top keywords count papers, not authors or keyword occurrences.
+    """
+    if dept not in ds.departments():
+        return None
+
+    def faculty_display(person):
+        return {"faculty_id": person["faculty_id"],
+                "name": "Not listed" if person["name"] == "Name not listed" else person["name"] or "Not listed",
+                "department": person["department"] or "Not listed",
+                "paper_count": person["paper_count"]}
+
+    faculty = [faculty_display(f) for f in ds.faculty if f["department"] == dept]
+    faculty.sort(key=lambda f: (f["name"].lower(), f["faculty_id"]))
+    publications, counts = [], Counter()
+    for row in ds.publication_rows():
+        if dept not in row["departments"]:
+            continue
+        paper = row["paper"]
+        keywords = {k.lower() for k in paper["keyword_list"]}
+        counts.update(keywords)
+        publications.append({
+            "paper_id": paper["paper_id"],
+            "title": "Not listed" if paper["title"] == "Title not listed" else paper["title"] or "Not listed",
+            "year": paper["year_num"] if paper["year_num"] is not None else "Not listed",
+            "venue": paper["venue"] or "Not listed", "doi": paper["doi"] or "Not listed",
+            "link": paper["link"],
+            "authors": [faculty_display(a) for a in row["authors"]],
+            "keywords": [ds.keyword_labels[k] for k in sorted(keywords)],
+        })
+    keyword_counts = Counter({ds.keyword_labels[k]: c for k, c in counts.items()})
+    return {"name": dept, "faculty": faculty, "publications": publications,
+            "top_keywords": _from_counter(keyword_counts, limit=10,
+                x_title="Number of papers using the keyword",
+                name_label="Keyword", value_label="Papers")}
+
+
 def dashboard_stats(ds, graph):
     return {
         "faculty": len(ds.faculty),

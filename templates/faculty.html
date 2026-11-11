@@ -29,7 +29,7 @@
     <div class="col-md-6 col-xl-4">
       <article class="rc-card h-100 faculty-card">
         <h2 class="faculty-name"><a href="{{ url_for('faculty_detail', faculty_id=f.faculty_id) }}">{{ f.name }}</a></h2>
-        <p class="muted mb-2">{{ f.department if f.department else 'Department not listed' }}</p>
+        <p class="muted mb-2">{% if f.department %}<a href="{{ url_for('department_detail', name=f.department) }}">{{ f.department }}</a>{% else %}Not listed{% endif %}</p>
         <div class="mb-3">
           {% if f.expertise_list %}{{ chips(f.expertise_list) }}{% else %}<span class="muted small">Expertise not listed yet</span>{% endif %}
         </div>
