@@ -5,6 +5,7 @@
 <div class="container page">
   <h1 class="page-title">Faculty directory</h1>
   <p class="muted page-lead">Showing {{ people|length }} of {{ total }} faculty profiles.</p>
+  <p><a class="btn rc-btn-ghost" href="{{ url_for('faculty_compare') }}">Compare faculty</a></p>
 
   <form class="row g-2 filter-bar" method="get" action="{{ url_for('faculty_list') }}">
     <div class="col-md-6">
