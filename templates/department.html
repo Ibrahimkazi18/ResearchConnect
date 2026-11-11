@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "_macros.html" import empty, chips, chart %}
+{% block title %}{{ department.name }}{% endblock %}
+{% block content %}
+<div class="container page">
+  <a class="back-link" href="{{ url_for('faculty_list') }}">Back to faculty</a>
+  <h1 class="page-title">{{ department.name }}</h1>
+  <p class="muted page-lead">{{ department.faculty|length }} faculty · {{ department.publications|length }} publications</p>
+  <h2 class="section-title">Faculty</h2>
+  <div class="row g-4">
+    {% for f in department.faculty %}
+    <div class="col-md-6 col-xl-4"><article class="rc-card h-100">
+      <h3 class="faculty-name"><a href="{{ url_for('faculty_detail', faculty_id=f.faculty_id) }}">{{ f.name }}</a></h3>
+      <p class="muted mb-0">{{ f.paper_count }} linked publications</p>
+    </article></div>
+    {% endfor %}
+  </div>
+  <h2 class="section-title mt-4">Top keywords</h2>
+  {% if department.top_keywords.labels %}
+  <div class="rc-card">{{ chart(department.top_keywords) }}</div>
+  {% else %}{{ empty('No keywords listed', 'No linked publications have keywords for this department.') }}{% endif %}
+  <h2 class="section-title mt-4">Publications</h2>
+  <p class="muted">Each paper appears once here, even when several faculty from this department authored it. Papers shared with other departments also appear on their pages.</p>
+  {% for p in department.publications %}
+  <article class="rc-card paper-card mb-3">
+    <div class="paper-year">{{ p.year }}</div>
+    <h3 class="paper-title">{% if p.link %}<a href="{{ p.link }}" target="_blank" rel="noopener">{{ p.title }}</a>{% else %}{{ p.title }}{% endif %}</h3>
+    <p class="paper-meta">Venue: {{ p.venue }}</p>
+    <p class="paper-meta">DOI: {{ p.doi }}</p>
+    <p class="paper-meta">VJTI faculty: {% for a in p.authors %}<a href="{{ url_for('faculty_detail', faculty_id=a.faculty_id) }}">{{ a.name }}</a>{% if not loop.last %}, {% endif %}{% else %}Not listed{% endfor %}</p>
+    {% if p.keywords %}{{ chips(p.keywords) }}{% else %}<p class="muted mb-0">Keywords: Not listed</p>{% endif %}
+  </article>
+  {% else %}{{ empty('No publications linked', 'No publications are linked to faculty in this department yet.') }}{% endfor %}
+</div>
+{% endblock %}

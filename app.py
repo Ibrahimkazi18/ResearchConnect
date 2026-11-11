@@ -95,6 +95,14 @@ def faculty_compare():
                            result=result, error=error)
 
 
+@app.get("/department/<name>")
+def department_detail(name):
+    summary = analytics.department_summary(Dataset(), name)
+    if summary is None:
+        abort(404)
+    return render_template("department.html", department=summary)
+
+
 # ---------- Publications ----------
 @app.route("/publications")
 def publications():
