@@ -34,6 +34,28 @@ def publications_by_year(ds):
                   "Publication year", "Number of publications", "Year", "Publications")
 
 
+def keyword_trends(ds):
+    """Count papers per normalized keyword and valid year, in sorted order.
+
+    Each keyword counts at most once per paper. Missing/invalid years are
+    already None in Dataset; their exclusion count remains available through
+    data_coverage(ds)["papers_without_year"], outside this nested contract.
+    """
+    observations = [
+        (paper["year_num"], keyword)
+        for paper in ds.papers if paper["year_num"] is not None
+        for keyword in sorted({k.lower() for k in paper["keyword_list"]})
+    ]
+    if not observations:
+        return {}
+    frame = pd.DataFrame(observations, columns=["year", "keyword"])
+    counts = frame.groupby(["keyword", "year"], sort=True).size()
+    trends = {}
+    for (keyword, year), count in counts.items():
+        trends.setdefault(keyword, {})[int(year)] = int(count)
+    return trends
+
+
 def publications_by_department(ds):
     """A paper counts once for each department that has a linked author on it."""
     counter = Counter()
